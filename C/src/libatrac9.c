@@ -25,6 +25,16 @@ int Atrac9Decode(void* handle, const unsigned char *pAtrac9Buffer, short *pPcmBu
 	return Decode(handle, pAtrac9Buffer, (unsigned char*)pPcmBuffer, pNBytesUsed);
 }
 
+int Atrac9DecodeS32(void* handle, const unsigned char *pAtrac9Buffer, int *pPcmBuffer, int *pNBytesUsed)
+{
+	return DecodeS32(handle, pAtrac9Buffer, pPcmBuffer, pNBytesUsed);
+}
+
+int Atrac9DecodeF32(void* handle, const unsigned char *pAtrac9Buffer, float *pPcmBuffer, int *pNBytesUsed)
+{
+	return DecodeF32(handle, pAtrac9Buffer, pPcmBuffer, pNBytesUsed);
+}
+
 int Atrac9GetCodecInfo(void* handle, Atrac9CodecInfo * pCodecInfo)
 {
 	return GetCodecInfo(handle, (CodecInfo*)pCodecInfo);
