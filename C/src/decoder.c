@@ -11,41 +11,41 @@
 static At9Status DecodeFrame(Frame* frame, BitReaderCxt* br);
 static void ImdctBlock(Block* block);
 static void ApplyIntensityStereo(Block* block);
-static void PcmFloatToShort(Frame* frame, short* pcmOut);
-static void PcmFloatToS32(Frame* frame, int* pcmOut);
-static void PcmFloatToF32(Frame* frame, float* pcmOut);
+static void PcmFloatToShort(Frame* frame, short* pcmOut, int nointerleave);
+static void PcmFloatToS32(Frame* frame, int* pcmOut, int nointerleave);
+static void PcmFloatToF32(Frame* frame, float* pcmOut, int nointerleave);
 
-At9Status Decode(Atrac9Handle* handle, const unsigned char* audio, unsigned char* pcm, int* bytesUsed)
+At9Status Decode(Atrac9Handle* handle, const unsigned char* audio, unsigned char* pcm, int* bytesUsed, int nointerleave)
 {
 	BitReaderCxt br;
 	InitBitReaderCxt(&br, audio);
 	ERROR_CHECK(DecodeFrame(&handle->Frame, &br));
 
-	PcmFloatToShort(&handle->Frame, (short*)pcm);
+	PcmFloatToShort(&handle->Frame, (short*)pcm, nointerleave);
 
 	*bytesUsed = br.Position / 8;
 	return ERR_SUCCESS;
 }
 
-At9Status DecodeS32(Atrac9Handle* handle, const unsigned char* audio, int* pcm, int* bytesUsed)
+At9Status DecodeS32(Atrac9Handle* handle, const unsigned char* audio, int* pcm, int* bytesUsed, int nointerleave)
 {
 	BitReaderCxt br;
 	InitBitReaderCxt(&br, audio);
 	ERROR_CHECK(DecodeFrame(&handle->Frame, &br));
 
-	PcmFloatToS32(&handle->Frame, pcm);
+	PcmFloatToS32(&handle->Frame, pcm, nointerleave);
 
 	*bytesUsed = br.Position / 8;
 	return ERR_SUCCESS;
 }
 
-At9Status DecodeF32(Atrac9Handle* handle, const unsigned char* audio, float* pcm, int* bytesUsed)
+At9Status DecodeF32(Atrac9Handle* handle, const unsigned char* audio, float* pcm, int* bytesUsed, int nointerleave)
 {
 	BitReaderCxt br;
 	InitBitReaderCxt(&br, audio);
 	ERROR_CHECK(DecodeFrame(&handle->Frame, &br));
 
-	PcmFloatToF32(&handle->Frame, pcm);
+	PcmFloatToF32(&handle->Frame, pcm, nointerleave);
 
 	*bytesUsed = br.Position / 8;
 	return ERR_SUCCESS;
@@ -69,50 +69,89 @@ static At9Status DecodeFrame(Frame* frame, BitReaderCxt* br)
 	return ERR_SUCCESS;
 }
 
-void PcmFloatToShort(Frame* frame, short* pcmOut)
+void PcmFloatToShort(Frame* frame, short* pcmOut, int nointerleave)
 {
 	const int channelCount = frame->Config->ChannelCount;
 	const int sampleCount = frame->Config->FrameSamples;
 	Channel** channels = frame->Channels;
 	int i = 0;
 
-	for (int smpl = 0; smpl < sampleCount; smpl++)
+	if (nointerleave)
 	{
-		for (int ch = 0; ch < channelCount; ch++, i++)
+		for (int ch = 0; ch < channelCount; ch++)
 		{
-			pcmOut[i] = Clamp16(Round(channels[ch]->Pcm[smpl]));
+			for (int smpl = 0; smpl < sampleCount; smpl++, i++)
+			{
+				pcmOut[i] = Clamp16(Round(channels[ch]->Pcm[smpl]));
+			}
+		}
+	}
+	else
+	{
+		for (int smpl = 0; smpl < sampleCount; smpl++)
+		{
+			for (int ch = 0; ch < channelCount; ch++, i++)
+			{
+				pcmOut[i] = Clamp16(Round(channels[ch]->Pcm[smpl]));
+			}
 		}
 	}
 }
 
-void PcmFloatToS32(Frame* frame, int* pcmOut)
+void PcmFloatToS32(Frame* frame, int* pcmOut, int nointerleave)
 {
 	const int channelCount = frame->Config->ChannelCount;
 	const int sampleCount = frame->Config->FrameSamples;
 	Channel** channels = frame->Channels;
 	int i = 0;
 
-	for (int smpl = 0; smpl < sampleCount; smpl++)
+	if (nointerleave)
 	{
-		for (int ch = 0; ch < channelCount; ch++, i++)
+		for (int ch = 0; ch < channelCount; ch++)
 		{
-			pcmOut[i] = Round(channels[ch]->Pcm[smpl]);
+			for (int smpl = 0; smpl < sampleCount; smpl++, i++)
+			{
+				pcmOut[i] = Round(channels[ch]->Pcm[smpl]);
+			}
+		}
+	}
+	else
+	{
+		for (int smpl = 0; smpl < sampleCount; smpl++)
+		{
+			for (int ch = 0; ch < channelCount; ch++, i++)
+			{
+				pcmOut[i] = Round(channels[ch]->Pcm[smpl]);
+			}
 		}
 	}
 }
 
-void PcmFloatToF32(Frame* frame, float* pcmOut)
+void PcmFloatToF32(Frame* frame, float* pcmOut, int nointerleave)
 {
 	const int channelCount = frame->Config->ChannelCount;
 	const int sampleCount = frame->Config->FrameSamples;
 	Channel** channels = frame->Channels;
 	int i = 0;
 
-	for (int smpl = 0; smpl < sampleCount; smpl++)
+	if (nointerleave)
 	{
-		for (int ch = 0; ch < channelCount; ch++, i++)
+		for (int ch = 0; ch < channelCount; ch++)
 		{
-			pcmOut[i] = (float)channels[ch]->Pcm[smpl];
+			for (int smpl = 0; smpl < sampleCount; smpl++, i++)
+			{
+				pcmOut[i] = (float)channels[ch]->Pcm[smpl];
+			}
+		}
+	}
+	else
+	{
+		for (int smpl = 0; smpl < sampleCount; smpl++)
+		{
+			for (int ch = 0; ch < channelCount; ch++, i++)
+			{
+				pcmOut[i] = (float)channels[ch]->Pcm[smpl];
+			}
 		}
 	}
 }
