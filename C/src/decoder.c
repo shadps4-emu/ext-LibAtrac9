@@ -7,6 +7,7 @@
 #include "unpack.h"
 #include "utility.h"
 #include <string.h>
+#include <limits.h>
 
 static At9Status DecodeFrame(Frame* frame, BitReaderCxt* br);
 static void ImdctBlock(Block* block);
@@ -140,7 +141,7 @@ void PcmFloatToF32(Frame* frame, float* pcmOut, int nointerleave)
 		{
 			for (int smpl = 0; smpl < sampleCount; smpl++, i++)
 			{
-				pcmOut[i] = (float)channels[ch]->Pcm[smpl];
+				pcmOut[i] = (float)(channels[ch]->Pcm[smpl] / SHRT_MAX);
 			}
 		}
 	}
@@ -150,7 +151,7 @@ void PcmFloatToF32(Frame* frame, float* pcmOut, int nointerleave)
 		{
 			for (int ch = 0; ch < channelCount; ch++, i++)
 			{
-				pcmOut[i] = (float)channels[ch]->Pcm[smpl];
+				pcmOut[i] = (float)(channels[ch]->Pcm[smpl] / SHRT_MAX);
 			}
 		}
 	}
