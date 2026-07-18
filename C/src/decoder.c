@@ -16,10 +16,10 @@ static void PcmFloatToShort(Frame* frame, short* pcmOut, int nointerleave);
 static void PcmFloatToS32(Frame* frame, int* pcmOut, int nointerleave);
 static void PcmFloatToF32(Frame* frame, float* pcmOut, int nointerleave);
 
-At9Status Decode(Atrac9Handle* handle, const unsigned char* audio, unsigned char* pcm, int* bytesUsed, int nointerleave)
+At9Status Decode(Atrac9Handle* handle, const unsigned char* audio, int audioSize, unsigned char* pcm, int* bytesUsed, int nointerleave)
 {
 	BitReaderCxt br;
-	InitBitReaderCxt(&br, audio);
+	InitBitReaderCxt(&br, audio, audioSize);
 	ERROR_CHECK(DecodeFrame(&handle->Frame, &br));
 
 	PcmFloatToShort(&handle->Frame, (short*)pcm, nointerleave);
@@ -28,10 +28,10 @@ At9Status Decode(Atrac9Handle* handle, const unsigned char* audio, unsigned char
 	return ERR_SUCCESS;
 }
 
-At9Status DecodeS32(Atrac9Handle* handle, const unsigned char* audio, int* pcm, int* bytesUsed, int nointerleave)
+At9Status DecodeS32(Atrac9Handle* handle, const unsigned char* audio, int audioSize, int* pcm, int* bytesUsed, int nointerleave)
 {
 	BitReaderCxt br;
-	InitBitReaderCxt(&br, audio);
+	InitBitReaderCxt(&br, audio, audioSize);
 	ERROR_CHECK(DecodeFrame(&handle->Frame, &br));
 
 	PcmFloatToS32(&handle->Frame, pcm, nointerleave);
@@ -40,10 +40,10 @@ At9Status DecodeS32(Atrac9Handle* handle, const unsigned char* audio, int* pcm, 
 	return ERR_SUCCESS;
 }
 
-At9Status DecodeF32(Atrac9Handle* handle, const unsigned char* audio, float* pcm, int* bytesUsed, int nointerleave)
+At9Status DecodeF32(Atrac9Handle* handle, const unsigned char* audio, int audioSize, float* pcm, int* bytesUsed, int nointerleave)
 {
 	BitReaderCxt br;
-	InitBitReaderCxt(&br, audio);
+	InitBitReaderCxt(&br, audio, audioSize);
 	ERROR_CHECK(DecodeFrame(&handle->Frame, &br));
 
 	PcmFloatToF32(&handle->Frame, pcm, nointerleave);

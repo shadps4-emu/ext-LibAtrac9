@@ -58,7 +58,7 @@ static At9Status InitConfigData(ConfigData* config, unsigned char* configData)
 static At9Status ReadConfigData(ConfigData* config)
 {
 	BitReaderCxt br;
-	InitBitReaderCxt(&br, &config->ConfigData);
+	InitBitReaderCxt(&br, &config->ConfigData, CONFIG_DATA_SIZE);
 
 	const int header = ReadInt(&br, 8);
 	config->SampleRateIndex = ReadInt(&br, 4);
