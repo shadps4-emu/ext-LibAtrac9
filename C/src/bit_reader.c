@@ -3,10 +3,11 @@
 
 static int PeekIntFallback(BitReaderCxt* br, int bitCount);
 
-void InitBitReaderCxt(BitReaderCxt* br, const void * buffer)
+void InitBitReaderCxt(BitReaderCxt* br, const void * buffer, int bufferSize)
 {
 	br->Buffer = buffer;
 	br->Position = 0;
+	br->LengthBits = bufferSize * 8;
 }
 
 int ReadInt(BitReaderCxt* br, const int bits)
@@ -33,38 +34,52 @@ int ReadOffsetBinary(BitReaderCxt* br, const int bits)
 
 int PeekInt(BitReaderCxt* br, const int bits)
 {
+	if (br->Position >= br->LengthBits)
+	{
+		return 0;
+	}
+	const int remaining = br->LengthBits - br->Position;
+	if (bits > remaining)
+	{
+		const int extraBits = bits - remaining;
+		return PeekIntFallback(br, remaining) << extraBits;
+	}
+
 	const int byteIndex = br->Position / 8;
 	const int bitIndex = br->Position % 8;
+	const int numBytes = (bitIndex + bits - 1) / 8 + 1;
 	const unsigned char* buffer = br->Buffer;
 
-	if (bits <= 9)
-	{
-		int value = buffer[byteIndex] << 8 | buffer[byteIndex + 1];
+	int value;
+	switch (numBytes) {
+	case 1:
+		value = buffer[byteIndex];
+		value &= 0xFF >> bitIndex;
+		value >>= 8 - bits - bitIndex;
+		break;
+	case 2:
+		value = buffer[byteIndex] << 8 | buffer[byteIndex + 1];
 		value &= 0xFFFF >> bitIndex;
 		value >>= 16 - bits - bitIndex;
-		return value;
-	}
-
-	if (bits <= 17)
-	{
-		int value = buffer[byteIndex] << 16 | buffer[byteIndex + 1] << 8 | buffer[byteIndex + 2];
+		break;
+	case 3:
+		value = buffer[byteIndex] << 16 | buffer[byteIndex + 1] << 8 | buffer[byteIndex + 2];
 		value &= 0xFFFFFF >> bitIndex;
 		value >>= 24 - bits - bitIndex;
-		return value;
-	}
-
-	if (bits <= 25)
-	{
-		int value = buffer[byteIndex] << 24
+		break;
+	case 4:
+		value = buffer[byteIndex] << 24
 			| buffer[byteIndex + 1] << 16
 			| buffer[byteIndex + 2] << 8
 			| buffer[byteIndex + 3];
-
 		value &= (int)(0xFFFFFFFF >> bitIndex);
 		value >>= 32 - bits - bitIndex;
-		return value;
+		break;
+	default:
+		value = PeekIntFallback(br, bits);
+		break;
 	}
-	return PeekIntFallback(br, bits);
+	return value;
 }
 
 void AlignPosition(BitReaderCxt* br, const unsigned int multiple)
