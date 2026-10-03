@@ -114,7 +114,7 @@ void CalculatePrecisions(Channel* channel)
 		channel->PrecisionsFine[i] = 0;
 		if (channel->Precisions[i] > 15)
 		{
-			channel->PrecisionsFine[i] = channel->Precisions[i] - 15;
+			channel->PrecisionsFine[i] = Min(channel->Precisions[i] - 15, 15);
 			channel->Precisions[i] = 15;
 		}
 	}

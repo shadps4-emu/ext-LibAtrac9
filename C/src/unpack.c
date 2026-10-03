@@ -186,7 +186,7 @@ static At9Status ReadGradientParams(Block* block, BitReaderCxt* br)
 	{
 		return ERR_UNPACK_GRAD_START_UNIT_OOB;
 	}
-	if (block->GradientEndUnit < 0 || block->GradientEndUnit >= 48)
+	if (block->GradientEndUnit < 0 || block->GradientEndUnit > 31)
 	{
 		return ERR_UNPACK_GRAD_END_UNIT_OOB;
 	}
@@ -232,6 +232,10 @@ static void BexReadHeader(Channel* channel, BitReaderCxt* br, int bexBand)
 	const int bexMode = ReadInt(br, 2);
 	channel->BexMode = bexBand > 2 ? bexMode : 4;
 	channel->BexValueCount = BexEncodedValueCounts[channel->BexMode][bexBand];
+	for (int i = 0; i < MAX_BEX_VALUES; i++)
+	{
+		channel->BexValues[i] = 0;
+	}
 }
 
 static void BexReadData(Channel* channel, BitReaderCxt* br, int bexBand)
@@ -248,6 +252,10 @@ static At9Status ReadExtensionParams(Block* block, BitReaderCxt* br)
 	int bexBand = 0;
 	if (block->BandExtensionEnabled)
 	{
+		if (block->QuantizationUnitCount < 13 || block->QuantizationUnitCount > 20)
+		{
+			return ERR_UNPACK_BAND_PARAMS_INVALID;
+		}
 		bexBand = BexGroupInfo[block->QuantizationUnitCount - 13].BandCount;
 		if (block->BlockType == Stereo)
 		{
