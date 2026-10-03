@@ -67,7 +67,7 @@ static At9Status ReadConfigData(ConfigData* config)
 	config->FrameBytes = ReadInt(&br, 11) + 1;
 	config->SuperframeIndex = ReadInt(&br, 2);
 
-	if (header != 0xFE || validationBit != 0)
+	if (header != 0xFE || validationBit != 0 || config->ChannelConfigIndex >= 6)
 	{
 		return ERR_BAD_CONFIG_DATA;
 	}
